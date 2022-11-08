@@ -38,20 +38,26 @@
             <table>
                 <thead>
                     <tr>
-                        <th width="300px"><strong>Task Name</strong></th>
-                        <th width="100px"><strong>Due Date</strong></th>
-                        <th width="50px"><strong>Priority</strong></th>
-                        <th><strong>Actions</strong></th>
+                        <th width="300px"><strong>Task:</strong></th>
+                        <th width="100px"><strong>Posted On:</strong></th>
+                        <th width="100px"><strong>Due Date:</strong></th>
+                        <th width="50px"><strong>Priority:</strong></th>
+                        <th><strong>Actions:</strong></th>
                     </tr>
                 </thead>
                 {% for task in open_tasks %}
                 
                     <tr>
                         <td width="300px">{{ task.name }}</td>
+                        <td>{{ task.posted_date }}</td>
                         <td width="100px">{{ task.due_date }}</td>
                         <td width="50px">{{ task.priority }}</td>
-                        <td><a href="{{ url_for("delete_entry",task_id = task.task_id) }}">Delete</a></td>
+                        {% if task.user_id==session.user_id or session.user_role=="admin" %}
+
+                        <td><a href="{{ url_for("delete_entry",task_id = task.task_id) }}">Delete</a> | </td>
                         <td><a href="{{ url_for("complete",task_id = task.task_id) }}">Mark as complete</a></td>
+                        
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </table>
@@ -80,7 +86,11 @@
                         <td width="300px">{{ task.name }}</td>
                         <td width="100px">{{ task.due_date }}</td>
                         <td width="50px">{{ task.priority }}</td>
+                        {% if task.user_id==session.user_id or session.user_role=="admin" %}
+
                         <td><a href="{{ url_for("delete_entry",task_id = task.task_id) }}">Delete</a></td>
+
+                        {% endif %}
                     </tr>
                 {% endfor %}
             </table>

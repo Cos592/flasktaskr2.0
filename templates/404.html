@@ -1,0 +1,8 @@
+{% extends '_base.html' %}
+
+{% block content %} 
+
+    <h1> 404 </h1>
+    <small> There is nothing for you here, go to <a href="{% if session.logged_in %} {{ url_for('tasks')}} {% else %} {{ url_for('login')}} {% endif %}"> {% if session.logged_in %} {{ "your tasks" }} {% else %} {{ "login page" }} {% endif %} </a> </small> 
+
+{% endblock content %}

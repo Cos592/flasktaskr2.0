@@ -30,9 +30,17 @@
                         {% if not session.logged_in %}
                             <li> <a href="/register">Signup</a></li>
                         {% else %}
+                           
                             <li> <a href="/logout"> Sign Out </a></li>
+                           
                         {% endif %}
                     </ul>
+                    {% if session.logged_in %}
+                    <ul class="nav navbar-nav navbar-right p5">
+                        <li> {{ session.user_name }} </li>
+                    </ul>
+                    
+                    {% endif %}
                 </div>
             </div>
         </div>

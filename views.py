@@ -1,4 +1,5 @@
 
+from flask_bcrypt import Bcrypt
 from datetime import date, datetime
 from functools import wraps
 
@@ -13,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 
 app=Flask(__name__)
 app.config.from_pyfile("_config.py")
+bcrypt=Bcrypt(app)
 db = SQLAlchemy(app)
 
 from models import Task, User
@@ -34,6 +36,8 @@ def login_required(test):
 def logout():
     session.pop("logged_in", None)
     session.pop("useer_id", None)
+    session.pop("user_role", None)
+    session.pop("user_name", None)
     flash("Goodbye")
     return redirect(url_for("login"))
 
@@ -44,10 +48,11 @@ def login():
     if request.method=="POST":
         if form.validate_on_submit():
             user = User.query.filter_by(name=request.form["name"]).first()
-            if user is not None and user.password == request.form["password"]:
+            if user is not None and bcrypt.check_password_hash(user.password, request.form["password"]):
                 session["logged_in"] = True
                 session['user_id'] = user.id
                 session["user_role"] = user.role
+                session["user_name"] = user.name
                 flash("Welcome")
                 return redirect(url_for("tasks"))
             else:
@@ -129,7 +134,7 @@ def register():
         print("passed POST")
         if form.validate_on_submit():
             print("passed validation")
-            new_user = User(form.name.data, form.email.data, form.password.data, "user")
+            new_user = User(form.name.data, form.email.data,bcrypt.generate_password_hash(form.password.data), "user")
             try:
                 print("entered try")
                 db.session.add(new_user)
@@ -147,3 +152,13 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(u"error in the %s field - %s" % (getattr(form, field).label.text, error), "error")
+            
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template("500.html"), 500
