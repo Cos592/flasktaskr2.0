@@ -3,7 +3,7 @@ from flask_bcrypt import Bcrypt
 from datetime import date, datetime
 from functools import wraps
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for, g
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify, make_response
 from forms import AddTaskForm, RegisterForm, LoginForm
 
 from flask_sqlalchemy import SQLAlchemy
@@ -147,13 +147,50 @@ def register():
         else:
             print("failed validation")
     return render_template("register.html",form=form, error=error)
+
+@app.route("/api/v1/tasks/")
+def api_tasks():
+    results = db.session.query(Task).all()
+    json_results=[]
+    for results in results:
+        data = {
+            "task_id" : results.task_id,
+            "task_name" : results.name,
+            "due_date" : str(results.due_date),
+            "priority" : results.priority,
+            "posted_date" : str(results.posted_date),
+            "status" : results.status,
+            "user_id" : results.user_id
+        }
+        json_results.append(data)
+    return jsonify(items=json_results)
+
+@app.route("/api/v1/tasks/<int:task_id>")
+def api_tasks_single(task_id):
+    result = db.session.query(Task).filter_by(task_id=task_id).first()
+    if result:
+        json_result={
+            "task_id" : result.task_id,
+            "task_name" : result.name,
+            "due_date" : str(result.due_date),
+            "priority" : result.priority,
+            "posted_date" : str(result.posted_date),
+            "status" : result.status,
+            "user_id" : result.user_id
+        }
+        code = 200
+    else:
+        code = 404
+        json_result = {"error": "element does not exist"}
+    return make_response(jsonify(json_result), code)
+
     
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(u"error in the %s field - %s" % (getattr(form, field).label.text, error), "error")
             
-
+    
 @app.errorhandler(404)
 def not_found(error):
     return render_template("404.html"), 404
@@ -162,3 +199,4 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return render_template("500.html"), 500
+
